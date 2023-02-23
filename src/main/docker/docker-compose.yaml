@@ -1,0 +1,21 @@
+version: '3'
+services:
+  demo-db:
+    image: "postgres:12"
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: demo
+    ports:
+      - 5432:5432
+    networks:
+      - demo
+    volumes:
+      - demo-data:/var/lib/postgresql/data
+
+networks:
+  demo:
+    driver: bridge
+
+volumes:
+  demo-data:

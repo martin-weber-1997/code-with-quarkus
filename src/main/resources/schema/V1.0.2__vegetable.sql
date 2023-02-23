@@ -1,0 +1,1 @@
+create table vegetable(id serial PRIMARY KEY, name varchar(100), color varchar(100));
