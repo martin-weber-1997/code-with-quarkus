@@ -2,11 +2,11 @@ package learningday.api.global.rest;
 
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
+import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
 import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Uni;
 import java.util.Collection;
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -29,8 +29,10 @@ import lombok.extern.slf4j.Slf4j;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Slf4j
-@Blocking
+
 public class FruitResource {
+
+
 
   @Inject
   FruitMapper fruitMapper;
@@ -40,6 +42,7 @@ public class FruitResource {
 
   @GET
   public Uni<Collection<FruitDTO>> list() {
+    log.info("request to list all fruits");
     return fruitService.listAll()
         .onItem()
         .transform(fruits -> fruits.stream()
@@ -50,7 +53,7 @@ public class FruitResource {
   @GET
   @Path("/search")
   public FruitDTO findByName(@QueryParam("name") String name) {
-    log.error("AAAAAAAAA");
+    log.info("request to find fruit by name: {}", name);
     return fruitMapper.boToDTO(fruitService.findByName(name));
   }
 
@@ -64,7 +67,7 @@ public class FruitResource {
   }
 
   @POST
-  @Transactional
+  @ReactiveTransactional
   public Uni<FruitDTO> add(FruitDTO fruitDTO) {
     return fruitService.save(fruitMapper.DTOToBo(fruitDTO))
         .onItem()
@@ -72,7 +75,7 @@ public class FruitResource {
   }
 
   @PUT
-  @Transactional
+  @ReactiveTransactional
   @Path("/{id}")
   public Uni<FruitDTO> update(FruitDTO fruitDTO, @PathParam("id") Long id) {
     return fruitService.findById(id)
@@ -85,7 +88,7 @@ public class FruitResource {
   }
 
   @DELETE
-  @Transactional
+  @ReactiveTransactional
   @Path("/{id}")
   public Uni<Response> delete(Fruit fruit, @PathParam("id") Long id) {
     return fruitService.deleteById(id)
