@@ -1,5 +1,12 @@
 version: '3'
 services:
+  demo-native:
+    #image: "quarkus/code-with-quarkus-jvm"
+    image: "quarkus/code-with-quarkus"
+    cpus: 0.5
+    ports:
+      - 8080:8080
+
   demo-db:
     image: "postgres:12"
     environment:
