@@ -58,10 +58,6 @@
       <artifactId>quarkus-resteasy-reactive-jsonb</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.jboss.logmanager</groupId>
-      <artifactId>log4j2-jboss-logmanager</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.jboss.logging</groupId>
       <artifactId>commons-logging-jboss-logging</artifactId>
     </dependency>
