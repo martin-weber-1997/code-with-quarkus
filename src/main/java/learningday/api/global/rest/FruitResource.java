@@ -1,12 +1,9 @@
 package learningday.api.global.rest;
 
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-
-import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
-import io.smallrye.common.annotation.Blocking;
-import io.smallrye.mutiny.Uni;
-import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -33,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 public class FruitResource {
 
 
-
   @Inject
   FruitMapper fruitMapper;
 
@@ -41,13 +37,13 @@ public class FruitResource {
   FruitService fruitService;
 
   @GET
-  public Uni<Collection<FruitDTO>> list() {
+  public Set<FruitDTO> list() {
     log.info("request to list all fruits");
     return fruitService.listAll()
-        .onItem()
-        .transform(fruits -> fruits.stream()
-            .map(fruitMapper::boToDTO)
-            .collect(java.util.stream.Collectors.toList()));
+        .stream()
+        .map(fruitMapper::boToDTO)
+        .collect(Collectors.toSet());
+
   }
 
   @GET
@@ -60,39 +56,35 @@ public class FruitResource {
 
   @GET
   @Path("/{id}")
-  public Uni<FruitDTO> get(@PathParam("id") Long id) {
-    return fruitService.findById(id)
-        .onItem()
-        .transform(fruitMapper::boToDTO);
+  public FruitDTO get(@PathParam("id") Long id) {
+    return fruitMapper.boToDTO(fruitService.findById(id));
   }
 
   @POST
-  @ReactiveTransactional
-  public Uni<FruitDTO> add(FruitDTO fruitDTO) {
-    return fruitService.save(fruitMapper.DTOToBo(fruitDTO))
-        .onItem()
-        .transform(v -> fruitMapper.boToDTO(v));
+  @Transactional
+  public Response add(FruitDTO fruitDTO) {
+    fruitService.save(fruitMapper.DTOToBo(fruitDTO));
+
+
+    return Response.ok(fruitDTO)
+        .status(201)
+        .build();
   }
 
   @PUT
-  @ReactiveTransactional
+  @Transactional
   @Path("/{id}")
-  public Uni<FruitDTO> update(FruitDTO fruitDTO, @PathParam("id") Long id) {
-    return fruitService.findById(id)
-        .onItem()
-        .transform(fruit -> fruitMapper.DTOToBo(fruitDTO, id))
-        .flatMap(fruit -> fruitService.save(fruit))
-        .onItem()
-        .transform(v -> fruitMapper.boToDTO(v));
-
+  public FruitDTO update(FruitDTO fruitDTO, @PathParam("id") Long id) {
+    return fruitMapper.boToDTO(fruitService.update(fruitMapper.DTOToBo(fruitDTO), id));
   }
 
   @DELETE
-  @ReactiveTransactional
+  @Transactional
   @Path("/{id}")
-  public Uni<Response> delete(Fruit fruit, @PathParam("id") Long id) {
-    return fruitService.deleteById(id)
-        .replaceWith(Response.ok()
-            .status(NO_CONTENT)::build);
+  public Response delete(Fruit fruit, @PathParam("id") Long id) {
+    fruitService.deleteById(id);
+    ;
+    return Response.status(204)
+        .build();
   }
 }

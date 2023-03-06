@@ -1,6 +1,5 @@
 package learningday.service;
 
-import io.smallrye.mutiny.Uni;
 import java.util.List;
 import javax.annotation.security.PermitAll;
 import javax.enterprise.context.ApplicationScoped;
@@ -18,34 +17,38 @@ public class FruitService {
 
 
   @PermitAll
-  public Uni<List<Fruit>> listAll() {
+  public List<Fruit> listAll() {
     return fruitRepository.listAll();
   }
 
-  public Uni<Fruit> findById(Long id) {
+  public Fruit findById(Long id) {
     return fruitRepository.findById(id);
   }
 
-  public Uni<Fruit> save(Fruit fruit) {
-    return fruitRepository.persistAndFlush(fruit)
-        .onItem()
-        .transform(v -> v);
+  public void save(Fruit fruit) {
+
+    fruitRepository.persistAndFlush(fruit);
+
   }
 
-  public Uni<Fruit> update(Fruit fruit) {
-    return fruitRepository.findById(fruit.id)
-        .onItem()
-        .ifNull()
-        .failWith(() -> new NotFoundException("Unknown fruit id : " + fruit.id))
-        .invoke(fruitRepository::persistAndFlush);
+  public Fruit update(Fruit fruit, Long id) {
+    var entity = fruitRepository.findById(id);
+    if (entity == null) {
+      throw new NotFoundException("Unknown fruit id : " + fruit.id);
+    }
+    entity.name = fruit.name;
+    entity.description = fruit.description;
+    fruitRepository.persistAndFlush(entity);
+    return entity;
+
   }
 
-  public Uni<Fruit> deleteById(Long id) {
-    return fruitRepository.findById(id)
-        .onItem()
-        .ifNull()
-        .failWith(() -> new NotFoundException("Unknown fruit id : " + id))
-        .call(fruitRepository::delete);
+  public void deleteById(Long id) {
+    var entity = fruitRepository.findById(id);
+    if (entity == null) {
+      throw new NotFoundException("Unknown fruit id : " + id);
+    }
+    deleteById(id);
 
   }
 

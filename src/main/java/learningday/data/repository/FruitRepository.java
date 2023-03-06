@@ -1,6 +1,6 @@
 package learningday.data.repository;
 
-import io.quarkus.hibernate.reactive.panache.PanacheRepositoryBase;
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import learningday.data.entity.Fruit;
@@ -9,7 +9,6 @@ import learningday.data.entity.Fruit;
 public class FruitRepository implements PanacheRepositoryBase<Fruit,
     Long> {
   public Optional<Fruit> findByName(String name) {
-    return find("name", name).firstResult().await().asOptional()
-        .indefinitely();
+    return find("name", name).firstResultOptional();
   }
 }

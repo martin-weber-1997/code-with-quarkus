@@ -2,7 +2,6 @@ package learningday.api.global.rest;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
-import io.smallrye.mutiny.Uni;
 import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -12,6 +11,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import learningday.data.entity.Vegetable;
 
@@ -21,18 +21,17 @@ public class VegetableResource {
 
   @POST
   @Consumes(APPLICATION_JSON)
-  public Uni<Response> create(Vegetable vegetable) {
-    return Vegetable.persist(vegetable)
-        .onItem()
-        .transform(persistedVegetable -> Response.status(Response.Status.CREATED)
-            .entity(persistedVegetable)
-            .build());
+  public Response create(Vegetable vegetable) {
+    Vegetable.persist(vegetable);
+    return Response.status(Response.Status.CREATED)
+        .entity(vegetable)
+        .build();
   }
 
   @GET
   @Path("/{id}")
   @Produces(APPLICATION_JSON)
-  public Uni<Vegetable> get(@PathParam("id") Long id) {
+  public Vegetable get(@PathParam("id") Long id) {
     return Vegetable.findById(id);
   }
 
@@ -40,30 +39,39 @@ public class VegetableResource {
   @Path("/{id}")
   @Consumes(APPLICATION_JSON)
   @Produces(APPLICATION_JSON)
-  public Uni<Response> update(@PathParam("id") Long id, Vegetable vegetable) {
-    return Vegetable.<Vegetable>findById(id)
-        .map(entity -> {
-          entity.name = vegetable.name;
-          entity.color = vegetable.color;
-          return entity;
-        })
-        .flatMap(entity -> Vegetable.persist(entity)).onItem().transform(updatedVegetable -> Response.status(Response.Status.CREATED)
-            .entity(updatedVegetable)
-            .build());
+  public Vegetable update(@PathParam("id") Long id, Vegetable vegetable) {
+    if (vegetable.name == null) {
+      throw new WebApplicationException("Vegetable Name was not set on request.", 422);
+    }
+
+    Vegetable entity = Vegetable.findById(id);
+
+    if (entity == null) {
+      throw new WebApplicationException("Vegetable with id of " + id + " does not exist.", 404);
+    }
+
+    entity.name = vegetable.name;
+    entity.color = vegetable.color;
+    //i think we need to persist wtf
+    return entity;
   }
 
   @DELETE
   @Path("/{id}")
   @Produces(APPLICATION_JSON)
-  public Uni<Response> delete(@PathParam("id") Long id) {
-    return Vegetable.deleteById(id)
-        .map(ignored -> Response.status(Response.Status.NO_CONTENT)
-            .build());
+  public Response delete(@PathParam("id") Long id) {
+    Vegetable entity = Vegetable.findById(id);
+    if (entity == null) {
+      throw new WebApplicationException("Vegetable with id of " + id + " does not exist.", 404);
+    }
+    entity.delete();
+    return Response.status(204)
+        .build();
   }
 
   @GET
   @Produces(APPLICATION_JSON)
-  public Uni<List<Vegetable>> list() {
+  public List<Vegetable> list() {
     return Vegetable.listAll();
   }
 }
