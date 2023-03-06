@@ -1,5 +1,31 @@
 # code-with-quarkus
 
+
+
+## Installation
+Install steps: 
+if you need: 
+
+```shell script
+xcode-select --install
+```
+
+```shell script
+brew install quarkusio/tap/quarkus
+quarkus create
+brew install --cask graalvm/tap/graalvm-ce-java17
+```
+Add to .zshrsc
+
+```
+export GRAALVM_HOME=/Library/Java/JavaVirtualMachines/<GraalvmName>
+export PATH=/Library/Java/JavaVirtualMachines/<GraalvmName>/Contents/Home/bin:$PATH
+```
+Install for native 
+```shell script
+gu install native-image
+```
+
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
